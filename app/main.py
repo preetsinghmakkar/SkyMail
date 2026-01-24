@@ -8,6 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.redis.redis_manager import redis_manager
 from app.database.database import engine, SessionLocal, get_db
 from app.modules.auth.routes import router as auth_router
+from app.modules.newsletters.newsletter_templates.routes import router as newsletter_router
 from app.utils import constants
 
 
@@ -85,6 +86,9 @@ async def health():
 
 # Include authentication routes
 app.include_router(auth_router)
+
+# Include newsletter routes
+app.include_router(newsletter_router)
 
 # ==================== ROOT ENDPOINT ====================
 
