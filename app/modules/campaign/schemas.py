@@ -11,6 +11,7 @@ class CampaignCreateRequest(BaseModel):
     
     name: str = Field(..., min_length=1, max_length=255, description="Campaign name")
     template_id: uuid.UUID = Field(..., description="Newsletter template ID to use")
+    constants_values: dict = Field(..., description="Values for template constants (e.g., {\"price\": \"₹999\", \"link\": \"...\"})")
     scheduled_for: datetime = Field(..., description="When to send (UTC)")
     send_timezone: Optional[str] = Field(
         default="UTC",
@@ -50,6 +51,7 @@ class CampaignResponse(BaseModel):
     send_timezone: Optional[str]
     status: str
     sent_at: Optional[datetime]
+    constants_values: dict = Field(default_factory=dict, description="Values for template constants")
     created_at: datetime
     updated_at: datetime
     

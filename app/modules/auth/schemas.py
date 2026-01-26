@@ -3,6 +3,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from uuid import UUID
+from datetime import datetime
 
 
 # ==================== REQUEST SCHEMAS ====================
@@ -44,6 +45,12 @@ class ConfirmPasswordResetRequest(BaseModel):
     new_password: str = Field(..., min_length=8, description="New password")
 
 
+class UpdateProfileRequest(BaseModel):
+    """Schema for updating company profile."""
+    company_name: Optional[str] = Field(None, min_length=2, max_length=255, description="Company name")
+    website_url: Optional[str] = Field(None, max_length=500, description="Company website URL")
+
+
 # ==================== RESPONSE SCHEMAS ====================
 
 class CompanyBaseResponse(BaseModel):
@@ -53,10 +60,14 @@ class CompanyBaseResponse(BaseModel):
     email: str
     company_name: str
     website_url: Optional[str] = None
+    profile_image_key: Optional[str] = None
     is_verified: bool
     is_premium: bool
     subscription_tier: str
+    subscription_end_date: Optional[datetime] = None
     max_subscribers: int
+    subscriber_count: int = 0
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -108,3 +119,18 @@ class SuccessResponse(BaseModel):
     """Generic success response."""
     message: str
     data: Optional[dict] = None
+
+
+class ProfileResponse(BaseModel):
+    """Profile response schema."""
+    id: UUID
+    email: str
+    company_name: str
+    website_url: Optional[str] = None
+    is_verified: bool
+    is_premium: bool
+    subscription_tier: str
+    subscription_end_date: Optional[str] = None
+
+    class Config:
+        from_attributes = True

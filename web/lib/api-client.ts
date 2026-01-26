@@ -1,11 +1,5 @@
-/**
- * API Client Setup for SkyMail Frontend
- * 
- * This file provides guidance on how to set up API calls to the backend.
- * The backend is already built with the endpoints documented in the repo.
- */
-
 import axios, { AxiosInstance } from "axios";
+import { tokenStorage } from "./token-storage";
 
 // Backend API Base URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -22,12 +16,12 @@ const apiClient: AxiosInstance = axios.create({
 
 /**
  * Request interceptor to add Authorization header
- * Automatically includes access token from localStorage/secure storage
+ * Automatically includes access token from token storage
  */
 apiClient.interceptors.request.use(
   (config) => {
-    // Get token from localStorage or secure storage
-    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    // Get token from token storage
+    const token = tokenStorage.getAccessToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -53,7 +47,7 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refresh_token");
+        const refreshToken = tokenStorage.getRefreshToken();
 
         if (refreshToken) {
           const response = await axios.post(
@@ -62,7 +56,7 @@ apiClient.interceptors.response.use(
           );
 
           const { access_token } = response.data;
-          localStorage.setItem("access_token", access_token);
+          tokenStorage.setTokens(access_token, refreshToken);
 
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
@@ -70,8 +64,7 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed, redirect to login
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        tokenStorage.clearTokens();
         window.location.href = "/auth/login";
         return Promise.reject(refreshError);
       }

@@ -53,7 +53,7 @@ class TemplateService:
                 subject=request.subject,
                 html_content=request.html_content,
                 text_content=request.text_content,
-                variables=request.variables or [],
+                constants=request.constants or [],
                 is_active=True,
             )
             
@@ -66,7 +66,7 @@ class TemplateService:
                 subject=request.subject,
                 html_content=request.html_content,
                 text_content=request.text_content,
-                variables=request.variables or [],
+                constants=request.constants or [],
             )
             
             db.add(initial_version)
@@ -100,7 +100,7 @@ class TemplateService:
             old_subject = template.subject
             old_html = template.html_content
             old_text = template.text_content
-            old_variables = template.variables
+            old_constants = template.constants
             
             content_changed = False
             
@@ -116,8 +116,8 @@ class TemplateService:
                 template.text_content = request.text_content
                 content_changed = True
             
-            if request.variables and request.variables != old_variables:
-                template.variables = request.variables
+            if request.constants and request.constants != old_constants:
+                template.constants = request.constants
                 content_changed = True
             
             if request.name:
@@ -144,7 +144,7 @@ class TemplateService:
                     subject=template.subject,
                     html_content=template.html_content,
                     text_content=template.text_content,
-                    variables=template.variables,
+                    constants=template.constants,
                 )
                 db.add(new_version)
             
@@ -199,6 +199,7 @@ class TemplateService:
                     id=t.id,
                     name=t.name,
                     subject=t.subject,
+                    constants=t.constants or [],
                     is_active=t.is_active,
                     updated_at=t.updated_at
                 )

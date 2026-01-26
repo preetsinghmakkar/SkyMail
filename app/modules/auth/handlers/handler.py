@@ -230,3 +230,45 @@ class LoginHandler:
             )
         
         return CompanyBaseResponse.model_validate(company)
+
+    @staticmethod
+    async def update_profile(
+        company_id: str,
+        update_data,
+        db: Session
+    ):
+        from app.modules.auth.model import Company
+        from app.modules.auth.schemas import ProfileResponse
+        import uuid
+        
+        company = db.query(Company).filter(
+            Company.id == uuid.UUID(company_id)
+        ).first()
+        
+        if not company:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Company not found"
+            )
+        
+        # Update only provided fields
+        if hasattr(update_data, 'company_name') and update_data.company_name:
+            company.company_name = update_data.company_name
+        
+        if hasattr(update_data, 'website_url') and update_data.website_url:
+            company.website_url = update_data.website_url
+        
+        db.add(company)
+        db.commit()
+        db.refresh(company)
+        
+        return ProfileResponse(
+            id=company.id,
+            email=company.email,
+            company_name=company.company_name,
+            website_url=company.website_url,
+            is_verified=company.is_verified,
+            is_premium=company.is_premium,
+            subscription_tier=company.subscription_tier,
+            subscription_end_date=company.subscription_end_date.isoformat() if company.subscription_end_date else None
+        )

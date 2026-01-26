@@ -28,7 +28,7 @@ router = APIRouter(
     response_model=CreateOrderResponse,
     status_code=200,
     summary="Create Razorpay order for premium subscription",
-    description="Create a Razorpay order to purchase premium subscription (₹1699 INR for 1 year)."
+    description="Create a Razorpay order to purchase premium subscription (₹500 INR for 1 month)."
 )
 async def create_premium_order(
     request: CreateOrderRequest,
@@ -44,7 +44,7 @@ async def create_premium_order(
     - Advanced analytics
     - Custom templates
     
-    **Pricing:** ₹1699 INR for 1 year
+    **Pricing:** ₹500 INR for 1 month
     
     **Flow:**
     1. Call this endpoint to create an order
@@ -85,7 +85,7 @@ async def verify_payment(
     **After successful verification:**
     - Company is upgraded to premium tier
     - Subscriber limit increased to unlimited
-    - Subscription valid for 1 year
+    - Subscription valid for 1 month
     
     **Required fields:**
     - `razorpay_order_id`: From create-order response

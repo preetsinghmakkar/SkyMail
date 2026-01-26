@@ -20,9 +20,9 @@ class BillingService:
     """Service for managing premium subscriptions and payments."""
     
     # Premium subscription pricing
-    PREMIUM_PRICE_AMOUNT = 1699.00  # ₹1699 INR (approx $20)
-    PREMIUM_PRICE_PAISE = 169900  # In paise for Razorpay
-    PREMIUM_DURATION_DAYS = 365  # 1 year
+    PREMIUM_PRICE_AMOUNT = 500.00  # ₹500 INR per month
+    PREMIUM_PRICE_PAISE = 50000  # In paise for Razorpay (500 * 100)
+    PREMIUM_DURATION_DAYS = 30  # 1 month
     
     # Initialize Razorpay client with validation
     if not constants.RAZORPAY_KEY_ID or not constants.RAZORPAY_SECRET_KEY:

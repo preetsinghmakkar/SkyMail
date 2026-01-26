@@ -206,7 +206,7 @@ class SubscriptionService:
             existing = db.query(Subscriber).filter(
                 and_(
                     Subscriber.company_id == uuid.UUID(company_id),
-                    Subscriber.email == normalized_email
+                    Subscriber.subscriber_email == normalized_email
                 )
             ).first()
             
@@ -260,7 +260,7 @@ class SubscriptionService:
             new_subscriber = Subscriber(
                 id=uuid.uuid4(),
                 company_id=uuid.UUID(company_id),
-                email=normalized_email,
+                subscriber_email=normalized_email,
                 status="subscribed",
                 source_origin=origin
             )
@@ -329,7 +329,7 @@ class SubscriptionService:
             subscriber = db.query(Subscriber).filter(
                 and_(
                     Subscriber.company_id == uuid.UUID(company_id),
-                    Subscriber.email == normalized_email
+                    Subscriber.subscriber_email == normalized_email
                 )
             ).first()
             

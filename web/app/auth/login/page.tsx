@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { authApi, CompanyLoginRequest } from "@/lib/api/auth";
+import { tokenStorage } from "@/lib/token-storage";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,12 +20,13 @@ export default function LoginPage() {
   const { mutate: login, isPending } = useMutation({
     mutationFn: (data: CompanyLoginRequest) => authApi.login(data),
     onSuccess: (data) => {
-      // Store tokens
-      localStorage.setItem("access_token", data.tokens.access_token);
-      localStorage.setItem("refresh_token", data.tokens.refresh_token);
+      // Store tokens in both localStorage and cookies
+      tokenStorage.setTokens(data.tokens.access_token, data.tokens.refresh_token);
       
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Small delay to ensure tokens are set before redirect
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 100);
     },
     onError: (err: any) => {
       setError(err.response?.data?.detail || "Invalid email or password");

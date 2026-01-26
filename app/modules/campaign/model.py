@@ -1,7 +1,7 @@
 import uuid
 import datetime
-from sqlalchemy import String, TIMESTAMP, ForeignKey, CheckConstraint, func, Index
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import String, TIMESTAMP, ForeignKey,CheckConstraint, func, Index
+from sqlalchemy.dialects.postgresql import UUID,JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.base import Base
@@ -70,6 +70,11 @@ class Campaign(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=func.now(),
+        nullable=False
+    )
+    constants_values: Mapped[dict] = mapped_column(
+        JSONB,
+        server_default="{}",
         nullable=False
     )
     updated_at: Mapped[datetime.datetime] = mapped_column(

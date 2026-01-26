@@ -27,6 +27,7 @@ class CampaignService:
         company_id: uuid.UUID,
         name: str,
         template_id: uuid.UUID,
+        constants_values: dict,
         scheduled_for: datetime,
         send_timezone: str = "UTC",
     ) -> Campaign:
@@ -38,6 +39,7 @@ class CampaignService:
             company_id: Owner company ID
             name: Campaign name
             template_id: Newsletter template ID
+            constants_values: Values for template constants
             scheduled_for: Scheduled send time (UTC)
             send_timezone: Timezone for display
         
@@ -62,6 +64,22 @@ class CampaignService:
         if not template:
             raise ResourceNotFoundError(f"Template {template_id} not found or doesn't belong to your company")
         
+        # Validate constants_values matches template constants
+        if set(constants_values.keys()) != set(template.constants):
+            missing = set(template.constants) - set(constants_values.keys())
+            extra = set(constants_values.keys()) - set(template.constants)
+            msg = "Constants mismatch: "
+            if missing:
+                msg += f"missing {list(missing)}"
+            if extra:
+                msg += (", " if missing else "") + f"extra {list(extra)}"
+            raise ValidationError(msg)
+        
+        # Validate no empty values
+        empty_keys = [k for k, v in constants_values.items() if not v or str(v).strip() == ""]
+        if empty_keys:
+            raise ValidationError(f"Empty values for constants: {empty_keys}")
+        
         # Validate scheduled_for is in the future
         now = datetime.now(timezone.utc)
         if scheduled_for <= now:
@@ -74,6 +92,7 @@ class CampaignService:
             template_id=template_id,
             name=name,
             subject=template.subject,  # Copy template subject
+            constants_values=constants_values,
             scheduled_for=scheduled_for,
             send_timezone=send_timezone,
             status="draft",

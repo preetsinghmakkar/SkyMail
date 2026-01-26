@@ -44,7 +44,7 @@ class NewsletterTemplateVersion(Base):
         nullable=True,
     )
 
-    variables: Mapped[list] = mapped_column(
+    constants: Mapped[list] = mapped_column(
         JSONB,
         server_default="[]",
         nullable=False,

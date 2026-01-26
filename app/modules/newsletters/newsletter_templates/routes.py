@@ -25,7 +25,7 @@ async def create_template(
     subject: str = Form(..., min_length=1, max_length=255),
     html_content: str = Form(...),
     text_content: Optional[str] = Form(None),
-    variables: Optional[str] = Form(None),
+    constants: Optional[str] = Form(None),
     files: Optional[List[UploadFile]] = File(None),
     company_id: str = Depends(get_current_company),
     db: Session = Depends(get_db)
@@ -35,7 +35,7 @@ async def create_template(
         subject=subject,
         html_content=html_content,
         text_content=text_content,
-        variables=[v.strip() for v in variables.split(",")] if variables else []
+        constants=[v.strip() for v in constants.split(",") if v.strip()] if constants and constants.strip() else []
     )
     return await TemplateHandler.create_template_with_assets(
         company_id, request, files, db
@@ -54,7 +54,7 @@ async def update_template(
     subject: Optional[str] = Form(None, max_length=255),
     html_content: Optional[str] = Form(None),
     text_content: Optional[str] = Form(None),
-    variables: Optional[str] = Form(None),
+    constants: Optional[str] = Form(None),
     is_active: Optional[bool] = Form(None),
     files: Optional[List[UploadFile]] = File(None),
     company_id: str = Depends(get_current_company),
@@ -65,7 +65,7 @@ async def update_template(
         subject=subject,
         html_content=html_content,
         text_content=text_content,
-        variables=[v.strip() for v in variables.split(",")] if variables else None,
+        constants=[v.strip() for v in constants.split(",") if v.strip()] if constants and constants.strip() else None,
         is_active=is_active
     )
     return await TemplateHandler.update_template_with_assets(

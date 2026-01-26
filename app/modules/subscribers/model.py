@@ -15,9 +15,9 @@ class Subscriber(Base):
     """
     __tablename__ = "subscribers"
     __table_args__ = (
-        UniqueConstraint("company_id", "email", name="uq_subscriber_company_email"),
+        UniqueConstraint("company_id", "subscriber_email", name="uq_subscriber_company_email"),
         Index("idx_subscribers_company_id", "company_id"),
-        Index("idx_subscribers_email", "email"),
+        Index("idx_subscribers_email", "subscriber_email"),
         Index("idx_subscribers_status", "status"),
     )
 
@@ -32,7 +32,9 @@ class Subscriber(Base):
     )
 
     # Email normalized to lowercase
-    email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    subscriber_email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+
+    subscriber_name : Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Subscription status: 'subscribed' or 'unsubscribed'
     status: Mapped[str] = mapped_column(String(20), default="subscribed", nullable=False)

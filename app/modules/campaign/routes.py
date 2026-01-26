@@ -28,7 +28,7 @@ from app.utils.exceptions import (
 
 
 router = APIRouter(
-    prefix="/campaigns",
+    prefix="/api/campaigns",
     tags=["campaigns"],
 )
 
@@ -44,6 +44,7 @@ async def create_campaign(
     
     - Campaign starts in 'draft' status
     - Template must belong to your company
+    - constants_values must match template.constants exactly
     - scheduled_for must be UTC (format: 2026-01-25T17:30:00Z)
     """
     try:
@@ -53,6 +54,7 @@ async def create_campaign(
             company_id=company_uuid,
             name=req.name,
             template_id=req.template_id,
+            constants_values=req.constants_values,
             scheduled_for=req.scheduled_for,
             send_timezone=req.send_timezone,
         )

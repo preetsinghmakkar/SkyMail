@@ -113,7 +113,7 @@ def send_campaign(self, campaign_id: str):
         )
         
         all_subscribers = db.execute(subscriber_query).scalars().all()
-        subscriber_emails = [s.email for s in all_subscribers]
+        subscriber_emails = [s.subscriber_email for s in all_subscribers]
         
         logger.info(f"📊 Found {len(subscriber_emails)} active subscribers")
         

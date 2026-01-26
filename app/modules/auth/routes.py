@@ -7,6 +7,7 @@ from app.modules.auth.schemas import (
     CompanyLoginRequest,
     VerifyOTPRequest,
     RefreshTokenRequest,
+    UpdateProfileRequest,
 )
 from app.modules.auth.handlers.handler import RegisterHandler, LoginHandler
 from app.utils.jwt_handler import verify_token, TokenPayload
@@ -138,6 +139,56 @@ async def get_profile(
     db: Session = Depends(get_db)
 ):
     return await LoginHandler.get_profile(company_id, db)
+
+
+@router.get(
+    "/profile",
+    status_code=status.HTTP_200_OK,
+    summary="Get company profile",
+    description="Get the company profile information."
+)
+async def get_company_profile(
+    company_id: str = Depends(get_current_company),
+    db: Session = Depends(get_db)
+):
+    from app.modules.auth.schemas import ProfileResponse
+    from app.modules.auth.model import Company
+    import uuid
+    
+    company = db.query(Company).filter(
+        Company.id == uuid.UUID(company_id)
+    ).first()
+    
+    if not company:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Company not found"
+        )
+    
+    return ProfileResponse(
+        id=company.id,
+        email=company.email,
+        company_name=company.company_name,
+        website_url=company.website_url,
+        is_verified=company.is_verified,
+        is_premium=company.is_premium,
+        subscription_tier=company.subscription_tier,
+        subscription_end_date=company.subscription_end_date.isoformat() if company.subscription_end_date else None
+    )
+
+
+@router.put(
+    "/profile",
+    status_code=status.HTTP_200_OK,
+    summary="Update company profile",
+    description="Update company profile information (name, website)."
+)
+async def update_company_profile(
+    request: UpdateProfileRequest,
+    company_id: str = Depends(get_current_company),
+    db: Session = Depends(get_db)
+):
+    return await LoginHandler.update_profile(company_id, request, db)
 
 @router.post("/forgot-password")
 async def forgot_password(

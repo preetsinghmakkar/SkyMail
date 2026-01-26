@@ -19,7 +19,7 @@ class TemplateCreateRequest(BaseModel):
     subject: str = Field(..., min_length=1, max_length=255, description="Email subject")
     html_content: str = Field(..., description="HTML content")
     text_content: Optional[str] = Field(None, description="Plain text content")
-    variables: List[str] = Field(default_factory=list, description="Template variables")
+    constants: List[str] = Field(default_factory=list, description="Template constants")
 
 
 class TemplateUpdateRequest(BaseModel):
@@ -27,7 +27,7 @@ class TemplateUpdateRequest(BaseModel):
     subject: Optional[str] = Field(None, max_length=255, description="Email subject")
     html_content: Optional[str] = Field(None, description="HTML content")
     text_content: Optional[str] = Field(None, description="Plain text content")
-    variables: Optional[List[str]] = Field(None, description="Template variables")
+    constants: Optional[List[str]] = Field(None, description="Template constants")
     is_active: Optional[bool] = Field(None, description="Active status")
 
 
@@ -38,7 +38,7 @@ class TemplateResponse(BaseModel):
     subject: str
     html_content: str
     text_content: Optional[str]
-    variables: List[str]
+    constants: List[str]
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -51,6 +51,7 @@ class TemplateListItem(BaseModel):
     id: UUID
     name: str
     subject: str
+    constants: List[str]
     is_active: bool
     updated_at: datetime
 
@@ -70,7 +71,7 @@ class TemplateVersionResponse(BaseModel):
     subject: str
     html_content: str
     text_content: Optional[str]
-    variables: List[str]
+    constants: List[str]
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
