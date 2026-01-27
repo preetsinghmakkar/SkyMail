@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skymail-backend
+    command: >
+      gunicorn app.main:app
+      -k uvicorn.workers.UvicornWorker
+      -w 1
+      -b 0.0.0.0:8000
+      --timeout 60
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      # Database (AWS RDS)
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT:-5432}
+      # Redis
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      REDIS_URL: redis://redis:6379/0
+      # AWS Configuration
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SES_REGION: ${AWS_SES_REGION}
+      AWS_SES_SENDER_EMAIL: ${AWS_SES_SENDER_EMAIL}
+      # App Configuration
+      ENVIRONMENT: production
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - skymail-network
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.7
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis Cache & Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: skymail-redis
+    volumes:
+      - redisdata:/data
+    networks:
+      - skymail-network
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Celery Beat Scheduler (Campaign Scheduling)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skymail-celery-beat
+    command: celery -A app.celery_app beat --loglevel=info
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      # Database (AWS RDS)
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT:-5432}
+      # Redis
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      REDIS_URL: redis://redis:6379/0
+      # AWS Configuration
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SES_REGION: ${AWS_SES_REGION}
+      AWS_SES_SENDER_EMAIL: ${AWS_SES_SENDER_EMAIL}
+      ENVIRONMENT: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - skymail-network
+    restart: on-failure
+    mem_limit: 256m
+    cpus: 0.3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Celery Worker - Campaigns Queue (2 concurrency - resource optimized)
+  celery-worker-campaigns:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skymail-celery-worker-campaigns
+    command: celery -A app.celery_app worker -Q scheduled,campaigns --loglevel=info -c 2 --max-tasks-per-child 100
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      # Database (AWS RDS)
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT:-5432}
+      # Redis
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      REDIS_URL: redis://redis:6379/0
+      # AWS Configuration
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SES_REGION: ${AWS_SES_REGION}
+      AWS_SES_SENDER_EMAIL: ${AWS_SES_SENDER_EMAIL}
+      ENVIRONMENT: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - skymail-network
+    restart: unless-stopped
+    mem_limit: 300m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Celery Worker - Email Batches Queue (2 concurrency - resource optimized)
+  celery-worker-email-batches:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skymail-celery-worker-email-batches
+    command: celery -A app.celery_app worker -Q email_batches --loglevel=info -c 2 --max-tasks-per-child 100
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      # Database (AWS RDS)
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT:-5432}
+      # Redis
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      REDIS_URL: redis://redis:6379/0
+      # AWS Configuration
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SES_REGION: ${AWS_SES_REGION}
+      AWS_SES_SENDER_EMAIL: ${AWS_SES_SENDER_EMAIL}
+      ENVIRONMENT: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - skymail-network
+    restart: unless-stopped
+    mem_limit: 300m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  skymail-network:
+    driver: bridge
+
+volumes:
+  redisdata:
+    driver: local
