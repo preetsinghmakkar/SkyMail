@@ -2,32 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const accessToken = request.cookies.get("access_token")?.value;
 
-  // Dashboard routes that require authentication
+  // Redirect unauthenticated users trying to access dashboard
   if (pathname.startsWith("/dashboard")) {
-    // Check for access token in cookies
-    const accessTokenCookie = request.cookies.get("access_token")?.value;
-
-    if (!accessTokenCookie) {
-      // Redirect to login if no access token found in cookies
+    if (!accessToken) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
   }
 
   // Redirect authenticated users away from auth pages
   if (pathname.startsWith("/auth/")) {
-    const accessTokenCookie = request.cookies.get("access_token")?.value;
-
-    if (accessTokenCookie) {
+    if (accessToken) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
-  // Redirect root to dashboard if authenticated
+  // Redirect root to dashboard if authenticated, otherwise show landing page
   if (pathname === "/") {
-    const accessTokenCookie = request.cookies.get("access_token")?.value;
-
-    if (accessTokenCookie) {
+    if (accessToken) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
