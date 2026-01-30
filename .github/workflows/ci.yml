@@ -1,0 +1,157 @@
+name: CI - Build and Test
+
+# Trigger on all branches for push and pull requests
+on:
+    push:
+        branches: ["**"]
+    pull_request:
+        branches: ["**"]
+
+# Environment variables for Docker builds
+env:
+    DOCKER_BUILDKIT: 1
+    COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+    build-and-test:
+        name: Build Docker Image and Validate
+        runs-on: ubuntu-latest
+
+        steps:
+            # Step 1: Checkout the repository code
+            - name: 📥 Checkout Code
+              uses: actions/checkout@v4
+
+            # Step 2: Set up Docker Buildx for advanced builds
+            - name: 🔧 Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            # Step 3: Create dummy .env file for Docker build
+            - name: 📝 Create .env file for build
+              run: |
+                  cat > .env << 'EOF'
+                  # Minimal .env for Docker build (not actual secrets)
+                  ENV=development
+                  SERVER_HOST=0.0.0.0
+                  SERVER_PORT=8000
+                  SERVER_URL=http://localhost:8000
+                  FRONTEND_URL=http://localhost:3000
+
+                  # Database
+                  DB_HOST=localhost
+                  DB_USER=test_user
+                  DB_PASSWORD=test_pass
+                  DB_NAME=test_db
+                  DB_PORT=5432
+
+                  # Redis
+                  REDIS_URL=redis://localhost:6379/0
+
+                  # Celery
+                  CELERY_BROKER_URL=redis://localhost:6379/1
+                  CELERY_RESULT_BACKEND=redis://localhost:6379/2
+
+                  # Secrets
+                  ACCESS_TOKEN_SECRET_KEY=test_secret_key_for_ci_build_only
+                  EMAIL_CONFIRMATION_SECRET_KEY=test_secret
+                  PASSWORD_RESET_SECRET_KEY=test_secret
+
+                  # Mail
+                  MAIL_USERNAME=test
+                  MAIL_PASSWORD=test
+                  MAIL_FROM=test@example.com
+                  MAIL_SMTP_HOST=smtp.gmail.com
+                  MAIL_SMTP_PORT=587
+                  MAIL_SMTP_REGION=us-east-1
+
+                  # AWS
+                  AWS_ACCESS_KEY_ID=test
+                  AWS_SECRET_ACCESS_KEY=test
+                  AWS_S3_BUCKET=test-bucket
+                  AWS_S3_REGION=us-east-1
+
+                  # Razorpay
+                  RAZORPAY_KEY_ID=test
+                  RAZORPAY_SECRET_KEY=test
+                  RAZORPAY_WEBHOOK_SECRET=test
+
+                  # Token expiration
+                  ACCESS_TOKEN_EXPIRE_MINUTES=15
+                  REFRESH_TOKEN_EXPIRE_DAYS=7
+                  RESET_TOKEN_EXPIRE_MINUTES=15
+                  CONFIRMATION_ACCOUNT_TOKEN_EXPIRE_MINUTES=2
+
+                  # Rate limiting
+                  LOGIN_RATE_LIMIT_PERIOD=60
+                  PASSWORD_RATE_LIMIT_PERIOD=300
+
+                  # Campaign
+                  CAMPAIGN_BATCH_SIZE=100
+                  CAMPAIGN_SCHEDULER_INTERVAL_SECONDS=60
+                  SES_SEND_RATE_LIMIT=14
+                  EOF
+
+            # Step 4: Build the Docker image
+            - name: 🐋 Build Docker Image
+              run: |
+                  echo "Building Docker image..."
+                  docker build \
+                    --tag skymail-backend:ci-${{ github.sha }} \
+                    --file Dockerfile \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    .
+                  echo "✅ Docker build completed successfully"
+
+            # Step 5: Validate docker-compose configuration
+            - name: ✅ Validate docker-compose.yml
+              run: |
+                  echo "Validating docker-compose configuration..."
+                  docker-compose -f docker-compose.prod.yml config > /dev/null
+                  echo "✅ docker-compose.prod.yml is valid"
+
+            # Step 6: Verify the built image exists
+            - name: 🔍 Verify Docker Image
+              run: |
+                  echo "Checking if image was created..."
+                  docker images | grep skymail-backend
+                  docker inspect skymail-backend:ci-${{ github.sha }}
+                  echo "✅ Image verified"
+
+            # Step 7: Run tests (optional - will not fail if no tests exist)
+            - name: 🧪 Run Tests (Optional)
+              run: |
+                  echo "Running tests inside Docker container..."
+                  # If you have tests, uncomment and modify:
+                  # docker run --rm skymail-backend:ci-${{ github.sha }} pytest tests/ -v
+                  echo "⚠️  No tests configured yet - skipping"
+                  echo "Add pytest tests in /tests directory to enable testing"
+              continue-on-error: true
+
+            # Step 8: Security vulnerability scan
+            - name: 🔒 Scan for Vulnerabilities
+              uses: aquasecurity/trivy-action@master
+              with:
+                  image-ref: skymail-backend:ci-${{ github.sha }}
+                  format: "table"
+                  exit-code: "0"
+                  severity: "CRITICAL,HIGH"
+              continue-on-error: true
+
+            # Step 9: Cleanup to free up space
+            - name: 🧹 Cleanup
+              if: always()
+              run: |
+                  docker rmi skymail-backend:ci-${{ github.sha }} || true
+                  docker system prune -f || true
+
+            # Step 10: Summary
+            - name: 📊 Build Summary
+              if: success()
+              run: |
+                  echo "=================================="
+                  echo "✅ CI Pipeline Completed Successfully"
+                  echo "=================================="
+                  echo "Commit: ${{ github.sha }}"
+                  echo "Branch: ${{ github.ref_name }}"
+                  echo "Author: ${{ github.actor }}"
+                  echo "=================================="

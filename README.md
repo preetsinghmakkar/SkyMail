@@ -2,8 +2,14 @@
 
 A FastAPI-based platform for managing newsletters, subscriber lists, and email campaigns. Includes scheduled sending, subscriber management, template builder, and payment integration.
 
+<p align="center">
+  <img
+    src="/asset/landing-page.png"
+    alt="SkyMail Landing Page Preview"
+    width="1000"
+  />
+</p>
 ## Setup
-
 ### Requirements
 - Python 3.12+
 - PostgreSQL 12+

@@ -62,10 +62,10 @@ RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_S3_BUCKET = os.getenv("AWS_S3_BUCKET")
-AWS_S3_REGION = os.getenv("AWS_S3_REGION", "us-east-1")
+AWS_S3_REGION = os.getenv("AWS_S3_REGION", "eu-north-1")
 
 # ======================== AWS SES CONFIGURATION ========================
-AWS_SES_REGION = os.getenv("MAIL_SMTP_REGION", "us-east-1")
+AWS_SES_REGION = os.getenv("MAIL_SMTP_REGION", "eu-north-1")
 AWS_SES_ACCESS_KEY_ID = os.getenv("MAIL_USERNAME")
 AWS_SES_SECRET_ACCESS_KEY = os.getenv("MAIL_PASSWORD")
 AWS_SES_SENDER_EMAIL = os.getenv("MAIL_FROM")

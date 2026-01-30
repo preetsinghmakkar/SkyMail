@@ -7,7 +7,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from app.modules.auth.model import Company
-from app.utils.constants import AWS_S3_BUCKET, AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+from app.utils.constants import AWS_S3_BUCKET, AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 
 class CompanyProfileService:
@@ -16,9 +16,14 @@ class CompanyProfileService:
     @staticmethod
     def _get_s3_client():
         """Create S3 client"""
+        logger.info(f"🔌 Creating S3 client")
+        logger.info(f"   Region: {AWS_S3_REGION}")
+        logger.info(f"   Bucket: {AWS_S3_BUCKET}")
+        logger.info(f"   Access Key: {AWS_ACCESS_KEY_ID[:10] if AWS_ACCESS_KEY_ID else 'NOT SET'}...")
+        
         return boto3.client(
             "s3",
-            region_name=AWS_REGION,
+            region_name=AWS_S3_REGION,
             aws_access_key_id=AWS_ACCESS_KEY_ID,
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
         )
@@ -105,13 +110,21 @@ class CompanyProfileService:
             }
             content_type = mime_types.get(file_ext, 'application/octet-stream')
             
-            s3_client.put_object(
+            logger.info(f"📤 Uploading to S3:")
+            logger.info(f"   Bucket: {AWS_S3_BUCKET}")
+            logger.info(f"   Key: {s3_key}")
+            logger.info(f"   Content Type: {content_type}")
+            logger.info(f"   File Size: {len(file_content)} bytes")
+            
+            response = s3_client.put_object(
                 Bucket=AWS_S3_BUCKET,
                 Key=s3_key,
                 Body=file_content,
-                ContentType=content_type,
-                ACL='public-read'
+                ContentType=content_type
             )
+            
+            logger.info(f"✅ S3 Upload Response: {response.get('ResponseMetadata', {}).get('HTTPStatusCode')}")
+            logger.info(f"   ETag: {response.get('ETag', 'N/A')}")
             
             # Delete old profile image if exists
             if company.profile_image_key:
@@ -125,7 +138,7 @@ class CompanyProfileService:
                     logger.warning(f"Failed to delete old image: {str(e)}")
             
             # Generate S3 URL
-            s3_url = f"https://{AWS_S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{s3_key}"
+            s3_url = f"https://{AWS_S3_BUCKET}.s3.{AWS_S3_REGION}.amazonaws.com/{s3_key}"
             
             # Update company profile_image_key
             company.profile_image_key = s3_key

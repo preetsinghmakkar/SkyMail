@@ -27,7 +27,13 @@ class RegisterService:
             ).first()
             
             if existing_company:
-                return False, "Email or username already registered"
+                return False, "Email or username already registered", None
+            
+            # Truncate password to 72 bytes for bcrypt compatibility
+            password_bytes = password.encode('utf-8')
+            if len(password_bytes) > 72:
+                logger.warning(f"Password too long for {email}, truncating to 72 bytes")
+                password = password_bytes[:72].decode('utf-8', errors='ignore')
             
             otp = EmailService.generate_otp()
             
@@ -58,7 +64,7 @@ class RegisterService:
             
         except Exception as e:
             logger.error(f"Registration error for {email}: {str(e)}")
-            return False, "Registration failed. Please try again."
+            return False, "Registration failed. Please try again.", None
 
     @staticmethod
     async def resend_otp(
@@ -71,13 +77,13 @@ class RegisterService:
             ).first()
             
             if existing_company and existing_company.is_verified:
-                return False, "Email already verified"
+                return False, "Email already verified", None
             
             reg_key = f"registration:{email}"
             reg_data_str = await redis_manager.redis.get(reg_key)
             
             if not reg_data_str:
-                return False, "Registration session expired. Please register again."
+                return False, "Registration session expired. Please register again.", None
             
             reg_data = json.loads(reg_data_str)
             
@@ -95,7 +101,7 @@ class RegisterService:
             
         except Exception as e:
             logger.error(f"Resend OTP error for {email}: {str(e)}")
-            return False, "Failed to resend OTP"
+            return False, "Failed to resend OTP", None
 
     @staticmethod
     async def verify_otp(

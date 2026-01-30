@@ -20,15 +20,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema - fix campaign_send_logs columns."""
-    
-    # Rename send_metadata to extra_data to match model definition
-    op.alter_column('campaign_send_logs', 'send_metadata',
-                    new_column_name='extra_data')
+    pass  # Column already exists as extra_data, nothing to do
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    
-    # Rename extra_data back to send_metadata
-    op.alter_column('campaign_send_logs', 'extra_data',
-                    new_column_name='send_metadata')
+    pass  # Nothing to revert
+
