@@ -48,18 +48,18 @@ jobs:
           IMAGE_NAME="${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}"
           echo "Image name: $IMAGE_NAME"
 
-          # Create tags - MUST be newline separated for docker/build-push-action
-          TAGS="${IMAGE_NAME}:${{ github.sha }}"$'\n'"${IMAGE_NAME}:latest"
-
           echo "Tags to be created:"
-          echo "$TAGS"
+          echo "${IMAGE_NAME}:${{ github.sha }}"
+          echo "${IMAGE_NAME}:latest"
 
-          # Export for next step - use EOF for multi-line
-          echo "tags<<EOF" >> $GITHUB_OUTPUT
-          echo "$TAGS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          echo "cache_ref=${IMAGE_NAME}:latest" >> $GITHUB_OUTPUT
+          # Export for next step - write a proper multi-line output
+          {
+            echo "tags<<EOF"
+            echo "${IMAGE_NAME}:${{ github.sha }}"
+            echo "${IMAGE_NAME}:latest"
+            echo "EOF"
+            echo "cache_ref=${IMAGE_NAME}:latest"
+          } >> "$GITHUB_OUTPUT"
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_REPOSITORY: ${{ secrets.DOCKERHUB_REPOSITORY }}
