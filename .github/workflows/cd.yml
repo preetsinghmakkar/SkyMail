@@ -149,22 +149,43 @@ jobs:
               exit 1
             }
            
+            # Sanitize Docker Hub credentials (avoid hidden CR/LF/whitespace)
+            DOCKERHUB_USERNAME_CLEAN="$(printf '%s' "${DOCKERHUB_USERNAME:-}" | tr -d '\r\n' | xargs)"
+            DOCKERHUB_REPOSITORY_CLEAN="$(printf '%s' "${DOCKERHUB_REPOSITORY:-}" | tr -d '\r\n' | xargs)"
+            DOCKERHUB_TOKEN_CLEAN="$(printf '%s' "${DOCKERHUB_TOKEN:-}" | tr -d '\r\n')"
+
+            echo "DockerHub username length: ${#DOCKERHUB_USERNAME_CLEAN}"
+            echo "DockerHub repository length: ${#DOCKERHUB_REPOSITORY_CLEAN}"
+
+            if [ -z "$DOCKERHUB_USERNAME_CLEAN" ] || [ -z "$DOCKERHUB_REPOSITORY_CLEAN" ]; then
+              echo "❌ ERROR: DockerHub username/repository is empty on EC2 session"
+              exit 1
+            fi
+
+            IMAGE_REF="$DOCKERHUB_USERNAME_CLEAN/$DOCKERHUB_REPOSITORY_CLEAN:latest"
+
+            # Basic validation: must not contain whitespace
+            if printf '%s' "$IMAGE_REF" | grep -q '[[:space:]]'; then
+              echo "❌ ERROR: Image reference contains whitespace"
+              exit 1
+            fi
+
             # Login to Docker Hub from EC2
             echo "🔑 Logging into Docker Hub..."
-            echo "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin || {
+            echo "$DOCKERHUB_TOKEN_CLEAN" | docker login --username "$DOCKERHUB_USERNAME_CLEAN" --password-stdin || {
               echo "❌ ERROR: Failed to login to Docker Hub"
               exit 1
             }
             
             # Pull latest image
-            echo "📥 Pulling latest Docker image..."
-            docker pull "$DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY:latest" || {
+            echo "📥 Pulling latest Docker image: $IMAGE_REF"
+            docker pull "$IMAGE_REF" || {
               echo "❌ ERROR: Failed to pull Docker image"
               exit 1
             }
             
             # Export image variable for docker-compose
-            export DOCKER_IMAGE="$DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY:latest"
+            export DOCKER_IMAGE="$IMAGE_REF"
             echo "Using image: $DOCKER_IMAGE"
             
             # Pull any updates to services
