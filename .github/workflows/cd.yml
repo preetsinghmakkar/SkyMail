@@ -34,9 +34,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 3.5: Debug - Verify secrets are set and prepare tags
-      - name: 🔍 Prepare Docker Tags
-        id: docker_tags
+      # Step 3.5: Prepare Docker image tags (bulletproof)
+      - name: 🏷️ Prepare Docker image tags
         run: |
           echo "Checking Docker Hub secrets..."
           echo "DOCKERHUB_USERNAME length: ${#DOCKERHUB_USERNAME}"
@@ -44,22 +43,12 @@ jobs:
           echo "DOCKERHUB_USERNAME (first 3 chars): ${DOCKERHUB_USERNAME:0:3}***"
           echo "DOCKERHUB_REPOSITORY (first 3 chars): ${DOCKERHUB_REPOSITORY:0:3}***"
 
-          # Build the image name
           IMAGE_NAME="${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}"
-          echo "Image name: $IMAGE_NAME"
+          echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
+          echo "IMAGE_SHA_TAG=$IMAGE_NAME:${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "IMAGE_LATEST_TAG=$IMAGE_NAME:latest" >> "$GITHUB_ENV"
 
-          echo "Tags to be created:"
-          echo "${IMAGE_NAME}:${GITHUB_SHA}"
-          echo "${IMAGE_NAME}:latest"
-
-          # Export for next step - write a proper multi-line output
-          {
-            echo "tags<<EOF"
-            echo "${IMAGE_NAME}:${GITHUB_SHA}"
-            echo "${IMAGE_NAME}:latest"
-            echo "EOF"
-            echo "cache_ref=${IMAGE_NAME}:latest"
-          } >> "$GITHUB_OUTPUT"
+          echo "Image tags prepared."
 
       # Step 4: Build and push Docker image to Docker Hub
       - name: 🐋 Build and Push Docker Image
@@ -68,8 +57,10 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.docker_tags.outputs.tags }}
-          cache-from: type=registry,ref=${{ steps.docker_tags.outputs.cache_ref }}
+          tags: |
+            ${{ env.IMAGE_SHA_TAG }}
+            ${{ env.IMAGE_LATEST_TAG }}
+          cache-from: type=registry,ref=${{ env.IMAGE_LATEST_TAG }}
           cache-to: type=inline
 
       # Step 5: Deploy to EC2
