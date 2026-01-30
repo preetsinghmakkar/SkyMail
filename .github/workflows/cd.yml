@@ -34,15 +34,32 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 3.5: Debug - Verify secrets are set
-      - name: 🔍 Debug Docker Hub Configuration
+      # Step 3.5: Debug - Verify secrets are set and prepare tags
+      - name: 🔍 Prepare Docker Tags
+        id: docker_tags
         run: |
           echo "Checking Docker Hub secrets..."
           echo "DOCKERHUB_USERNAME length: ${#DOCKERHUB_USERNAME}"
           echo "DOCKERHUB_REPOSITORY length: ${#DOCKERHUB_REPOSITORY}"
           echo "DOCKERHUB_USERNAME (first 3 chars): ${DOCKERHUB_USERNAME:0:3}***"
           echo "DOCKERHUB_REPOSITORY (first 3 chars): ${DOCKERHUB_REPOSITORY:0:3}***"
-          echo "Full image name will be: $DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY:latest"
+
+          # Build the image name
+          IMAGE_NAME="${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}"
+          echo "Image name: $IMAGE_NAME"
+
+          # Create tags - MUST be newline separated for docker/build-push-action
+          TAGS="${IMAGE_NAME}:${{ github.sha }}"$'\n'"${IMAGE_NAME}:latest"
+
+          echo "Tags to be created:"
+          echo "$TAGS"
+
+          # Export for next step - use EOF for multi-line
+          echo "tags<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "cache_ref=${IMAGE_NAME}:latest" >> $GITHUB_OUTPUT
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_REPOSITORY: ${{ secrets.DOCKERHUB_REPOSITORY }}
@@ -54,10 +71,8 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+          tags: ${{ steps.docker_tags.outputs.tags }}
+          cache-from: type=registry,ref=${{ steps.docker_tags.outputs.cache_ref }}
           cache-to: type=inline
 
       # Step 5: Deploy to EC2
