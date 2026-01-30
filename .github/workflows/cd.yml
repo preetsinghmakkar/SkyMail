@@ -79,7 +79,7 @@ jobs:
             echo "============================================"
             echo "🚀 Starting deployment process..."
             echo "============================================"
-          
+
             # Navigate to application directory
             echo "📂 Navigating to application directory..."
             cd /home/${{ secrets.EC2_USERNAME }}/SkyMail || {
@@ -107,13 +107,13 @@ jobs:
             
             # Pull any updates to services
             echo "📦 Pulling service updates..."
-            docker-compose -f docker-compose.prod.yml pull || true
+            docker compose -f docker-compose.prod.yml pull || true
             
             # Restart backend service with zero-downtime
             echo "🔄 Restarting backend service..."
-            docker-compose -f docker-compose.prod.yml up -d --no-deps backend || {
+            docker compose -f docker-compose.prod.yml up -d --no-deps backend || {
               echo "❌ ERROR: Failed to restart backend"
-              docker-compose -f docker-compose.prod.yml logs --tail=100 backend
+              docker compose -f docker-compose.prod.yml logs --tail=100 backend
               exit 1
             }
             
@@ -123,7 +123,7 @@ jobs:
             MAX_ATTEMPTS=30
             
             while [ $HEALTH_CHECK_ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-              if docker-compose -f docker-compose.prod.yml exec -T backend curl -f http://localhost:8000/health 2>/dev/null; then
+              if docker compose -f docker-compose.prod.yml exec -T backend curl -f http://localhost:8000/health 2>/dev/null; then
                 echo "✅ Backend is healthy!"
                 break
               fi
@@ -135,23 +135,23 @@ jobs:
               if [ $HEALTH_CHECK_ATTEMPTS -eq $MAX_ATTEMPTS ]; then
                 echo "❌ ERROR: Backend health check failed after $MAX_ATTEMPTS attempts"
                 echo "Recent logs:"
-                docker-compose -f docker-compose.prod.yml logs --tail=50 backend
+                docker compose -f docker-compose.prod.yml logs --tail=50 backend
                 exit 1
               fi
             done
             
             # Run database migrations (if any)
             echo "🗄️  Running database migrations..."
-            docker-compose -f docker-compose.prod.yml exec -T backend alembic upgrade head || {
+            docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head || {
               echo "⚠️  WARNING: Migrations failed or no migrations to run"
             }
             
             # Restart Celery workers gracefully
             echo "🔄 Restarting Celery workers..."
-            docker-compose -f docker-compose.prod.yml restart celery-worker-campaigns || {
+            docker compose -f docker-compose.prod.yml restart celery-worker-campaigns || {
               echo "⚠️  WARNING: Failed to restart celery-worker-campaigns, but continuing..."
             }
-            docker-compose -f docker-compose.prod.yml restart celery-worker-email-batches || {
+            docker compose -f docker-compose.prod.yml restart celery-worker-email-batches || {
               echo "⚠️  WARNING: Failed to restart celery-worker-email-batches, but continuing..."
             }
             
@@ -166,7 +166,7 @@ jobs:
             echo "============================================"
             echo ""
             echo "📊 Running containers:"
-            docker-compose -f docker-compose.prod.yml ps
+            docker compose -f docker-compose.prod.yml ps
             echo ""
             echo "============================================"
           ENDSSH
