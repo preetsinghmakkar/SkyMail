@@ -81,7 +81,43 @@ jobs:
       # Step 5: Deploy to EC2
       - name: 🚀 Deploy to EC2
         run: |
+          set -euo pipefail
           echo "Preparing SSH connection..."
+
+          # Sanitize EC2 connection vars (avoid hidden CR/LF/whitespace from secrets)
+          EC2_HOST_CLEAN="$(printf '%s' "${{ secrets.EC2_HOST }}" | tr -d '\r\n' | xargs)"
+          EC2_USER_CLEAN="$(printf '%s' "${{ secrets.EC2_USERNAME }}" | tr -d '\r\n' | xargs)"
+          echo "EC2_HOST length: ${#EC2_HOST_CLEAN}"
+          echo "EC2_USERNAME length: ${#EC2_USER_CLEAN}"
+
+          # Validate EC2 host is a plain IPv4 address (no scheme, no :22, no spaces)
+          if ! printf '%s' "$EC2_HOST_CLEAN" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+            echo "❌ ERROR: EC2_HOST is not a plain IPv4 address."
+            echo "Hint: set EC2_HOST to something like 51.20.128.5 (no http://, no :22, no spaces)."
+            exit 1
+          fi
+
+          # Preflight: check SSH port is reachable from the GitHub runner
+          if ! command -v nc >/dev/null 2>&1; then
+            sudo apt-get update -y >/dev/null 2>&1
+            sudo apt-get install -y netcat-openbsd >/dev/null 2>&1
+          fi
+          echo "Preflight TCP check to $EC2_HOST_CLEAN:22 ..."
+          if ! nc -vz -w 5 "$EC2_HOST_CLEAN" 22; then
+            echo "❌ ERROR: Cannot reach $EC2_HOST_CLEAN:22 from GitHub runner."
+            echo "Most likely: EC2 Security Group/NACL doesn't allow SSH from GitHub runners, or instance is down."
+            exit 1
+          fi
+
+          # Basic preflight: try resolving/validating host before SSH
+          if command -v getent >/dev/null 2>&1; then
+            echo "Preflight DNS lookup..."
+            getent hosts "$EC2_HOST_CLEAN" >/dev/null 2>&1 || true
+          fi
+
+          # Retry SSH a few times (handles transient runner DNS issues)
+          SSH_ATTEMPTS=0
+          SSH_MAX_ATTEMPTS=5
 
           # Create SSH key file from secret
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
@@ -89,10 +125,15 @@ jobs:
 
           echo "Connecting to EC2 and deploying..."
 
-          # SSH into EC2 and execute deployment commands
-          ssh -o StrictHostKeyChecking=no \
+          # SSH into EC2 and execute deployment commands (with retries)
+          while true; do
+            ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              -o ConnectTimeout=10 \
+              -o ServerAliveInterval=10 \
+              -o ServerAliveCountMax=3 \
               -i private_key.pem \
-              ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'ENDSSH'
+              "$EC2_USER_CLEAN@$EC2_HOST_CLEAN" << 'ENDSSH'
             set -e  # Exit on any error
             
             echo "============================================"
@@ -101,8 +142,8 @@ jobs:
 
             # Navigate to application directory
             echo "📂 Navigating to application directory..."
-            cd /home/${{ secrets.EC2_USERNAME }}/SkyMail || {
-              echo "❌ ERROR: SkyMail directory not found at /home/${{ secrets.EC2_USERNAME }}/SkyMail"
+            cd "/home/$EC2_USER_CLEAN/SkyMail" || {
+              echo "❌ ERROR: SkyMail directory not found at /home/$EC2_USER_CLEAN/SkyMail"
               exit 1
             }
            
@@ -190,6 +231,19 @@ jobs:
             echo "============================================"
           ENDSSH
 
+            if [ $? -eq 0 ]; then
+              break
+            fi
+
+            SSH_ATTEMPTS=$((SSH_ATTEMPTS + 1))
+            if [ "$SSH_ATTEMPTS" -ge "$SSH_MAX_ATTEMPTS" ]; then
+              echo "❌ ERROR: SSH failed after ${SSH_MAX_ATTEMPTS} attempts"
+              exit 1
+            fi
+            echo "SSH attempt ${SSH_ATTEMPTS}/${SSH_MAX_ATTEMPTS} failed; retrying in 3s..."
+            sleep 3
+          done
+
           # Cleanup SSH key
           rm -f private_key.pem
 
@@ -200,6 +254,9 @@ jobs:
         run: |
           echo "Verifying deployment..."
 
+          EC2_HOST_CLEAN="$(printf '%s' "${{ secrets.EC2_HOST }}" | tr -d '\r\n' | xargs)"
+          EC2_USER_CLEAN="$(printf '%s' "${{ secrets.EC2_USERNAME }}" | tr -d '\r\n' | xargs)"
+
           # Recreate SSH key for verification
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
@@ -209,8 +266,10 @@ jobs:
 
           # Test if backend is responding
           ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              -o ConnectTimeout=10 \
               -i private_key.pem \
-              ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+              "$EC2_USER_CLEAN@$EC2_HOST_CLEAN" \
               "curl -f http://localhost:8000/health" || {
             echo "❌ ERROR: Backend health check failed"
             rm -f private_key.pem
