@@ -1,12 +1,12 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # FastAPI Backend
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKER_IMAGE}
     container_name: skymail-backend
+    env_file:
+      - /home/ubuntu/SkyMail/.env
     command: >
       gunicorn app.main:app
       -k uvicorn.workers.UvicornWorker
@@ -81,9 +81,7 @@ services:
 
   # Celery Beat Scheduler (Campaign Scheduling)
   celery-beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKER_IMAGE}
     container_name: skymail-celery-beat
     command: celery -A app.celery_app beat --loglevel=info
     environment:
@@ -119,11 +117,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Celery Worker - Campaigns Queue (2 concurrency - resource optimized)
+  # Celery Worker - Campaigns Queue
   celery-worker-campaigns:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKER_IMAGE}
     container_name: skymail-celery-worker-campaigns
     command: celery -A app.celery_app worker -Q scheduled,campaigns --loglevel=info -c 2 --max-tasks-per-child 100
     environment:
@@ -159,11 +155,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Celery Worker - Email Batches Queue (2 concurrency - resource optimized)
+  # Celery Worker - Email Batches Queue
   celery-worker-email-batches:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKER_IMAGE}
     container_name: skymail-celery-worker-email-batches
     command: celery -A app.celery_app worker -Q email_batches --loglevel=info -c 2 --max-tasks-per-child 100
     environment:
