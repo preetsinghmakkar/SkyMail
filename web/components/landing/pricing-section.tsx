@@ -9,7 +9,7 @@ export function PricingSection() {
       id="pricing"
       className="relative py-24 px-4 sm:px-6 lg:px-8 bg-(--surface-pricing) dark:bg-[#0B1220]"
     >
-      <div className="absolute inset-x-0 top-0 z-0 h-28 sm:h-36 pointer-events-none bg-[linear-gradient(to_bottom,var(--surface-stats)_0%,transparent_100%)] dark:hidden" />
+      <div className="absolute inset-x-0 top-0 z-0 h-28 sm:h-36 pointer-events-none bg-[linear-gradient(to_bottom,var(--surface-dev)_0%,transparent_100%)] dark:hidden" />
 
       <div className="relative max-w-5xl mx-auto">
         <div className="text-center space-y-6 mb-20">
@@ -30,10 +30,10 @@ export function PricingSection() {
               </div>
               <div className="space-y-4">
               {[
-                "Up to 1,000 subscribers",
-                "Basic email templates",
+                "Up to 250 subscribers",
+                "HTML email templates",
                 "Email support",
-                "Simple analytics",
+                "Delivery tracking",
               ].map((feature, idx) => (
                 <div key={idx} className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-[#0F766E] dark:text-[#2dd4bf] shrink-0" />
@@ -64,9 +64,9 @@ export function PricingSection() {
               <div className="space-y-4">
                 {[
                   "Unlimited subscribers",
-                  "Advanced analytics",
+                  "Detailed delivery reports",
                   "Priority email support",
-                  "Custom branding",
+                  "Template versioning",
                   "API access",
                 ].map((feature, idx) => (
                   <div key={idx} className="flex items-center gap-3">

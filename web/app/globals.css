@@ -48,12 +48,16 @@
 }
 
 :root {
-  /* Section flow — each section blends into the next instead of a hard white cut */
+  /* Section flow — each section blends into the next instead of a hard white cut.
+     Order matches the page: Hero -> HowItWorks -> Features -> Developer ->
+     Pricing -> FAQ -> CTA -> Footer. */
   --surface-hero: #0b1520;
-  --surface-features: #f7fbfc;
-  --surface-stats: #f3faf9;
+  --surface-how: #f3faf9;
+  --surface-features: #f7fafc;
+  --surface-dev: #f5f9fc;
   --surface-pricing: #fbfcfd;
-  --surface-cta: #f8fafc;
+  --surface-faq: #f8fafc;
+  --surface-cta: #f3faf9;
   --surface-footer: #07141d;
 
   --text-heading: #0f172a;
@@ -64,7 +68,7 @@
   --brand-accent: #38bdf8;
 
   --radius: 0.625rem;
-  --background: var(--surface-features);
+  --background: var(--surface-how);
   --foreground: var(--text-heading);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -176,16 +180,51 @@
     animation: hero-drift 28s ease-in-out infinite;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .animate-hero-drift {
-      animation: none;
-    }
-  }
-
   .bg-grid-faint {
     background-image:
       linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 48px 48px;
+  }
+
+  .bg-dots-faint {
+    background-image: radial-gradient(rgba(15, 23, 42, 0.06) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  @keyframes float-slow {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(6px, -14px);
+    }
+  }
+
+  @keyframes float-slower {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(-8px, 10px);
+    }
+  }
+
+  .animate-float-slow {
+    animation: float-slow 10s ease-in-out infinite;
+  }
+
+  .animate-float-slower {
+    animation: float-slower 14s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-hero-drift,
+    .animate-float-slow,
+    .animate-float-slower {
+      animation: none;
+    }
   }
 }
