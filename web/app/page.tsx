@@ -10,7 +10,7 @@ import {
 
 export default function Home() {
   return (
-    <div className="bg-white dark:bg-black">
+    <div className="bg-(--surface-features) dark:bg-black">
       <Navbar />
       <HeroSection />
       <FeaturesSection />

@@ -1,98 +1,59 @@
-"use client";
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Plane, TrendingUp, Users, Mail } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { HeroBackground } from "@/components/landing/hero-background";
 
 export function HeroSection() {
   return (
-    <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#E9F3F4] to-white dark:from-[#180D39] dark:to-[#1D1E20]">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Left Column */}
-          <div>
+    <section className="relative isolate overflow-hidden bg-[#0B1520] min-h-[640px] sm:min-h-[720px] lg:min-h-[820px] flex items-center pt-32 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
+      <HeroBackground />
 
-            {/* Heading */}
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6 text-[#180D39] dark:text-white">
-              Send Newsletters at <span className="bg-gradient-to-r from-[#2A8E9E] to-[#1D7A89] bg-clip-text text-transparent">Scale.</span>
-            </h1>
+      {/*
+        Readability scrim. Below `lg` the text column spans almost the full
+        width, so a uniform wash keeps it legible everywhere. At `lg`+ there's
+        real room beside the text, so we switch to a left-to-right fade that
+        leaves most of the artwork crisp and clear on the right.
+      */}
+      <div className="absolute inset-0 -z-10 bg-black/55 lg:hidden" />
+      <div className="absolute inset-0 -z-10 hidden lg:block bg-[linear-gradient(to_right,rgba(11,21,32,0.82)_0%,rgba(11,21,32,0.45)_28%,rgba(11,21,32,0)_55%)]" />
 
-            {/* Description */}
-            <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
-              Power your communication with high-performance infrastructure. Schedule, send, and track newsletters with powerful analytics tools.
-            </p>
+      {/* Seamless hand-off into the section below — no visible cut */}
+      <div
+        className="absolute inset-x-0 bottom-0 -z-10 h-40 sm:h-56 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(11,21,32,0) 0%, rgba(247,251,252,0.65) 70%, var(--surface-features) 100%)",
+        }}
+      />
 
-            {/* Buttons */}
-            <div className="flex gap-4 mb-12 flex-wrap">
-              <Button size="lg" className="bg-[#2A8E9E] hover:bg-[#1D7A89] text-white group" asChild>
-                <Link href="/auth/register" className="inline-flex items-center">
-                  Get Started
-                  <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="border-[#2A8E9E] text-[#2A8E9E] hover:bg-[#E9F3F4] dark:hover:bg-[#2A8E9E]/10" asChild>
-                <Link href="#learn-more">Learn more</Link>
-              </Button>
-            </div>
+      <div className="relative max-w-6xl mx-auto w-full">
+        <div className="max-w-2xl">
+          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.1] tracking-tight text-white mb-6">
+            Send newsletters that actually{" "}
+            <span className="text-[#2dd4bf]">scale.</span>
+          </h1>
 
-            {/* Trust Section removed */}
-          </div>
+          <p className="text-base sm:text-lg text-gray-300 leading-relaxed mb-10 max-w-xl">
+            Built with FastAPI, Redis, Celery and AWS SES to deliver millions
+            of emails reliably. Schedule campaigns, manage subscribers and
+            automate newsletters from one platform.
+          </p>
 
-          {/* Right Column - Campaign Dashboard Card */}
-          <div className="relative">
-            <div className="bg-gradient-to-br from-[#2A8E9E]/20 to-[#2A8E9E]/5 dark:from-[#2A8E9E]/20 dark:to-[#2A8E9E]/5 rounded-2xl p-8 backdrop-blur-sm border border-[#2A8E9E]/20 dark:border-[#2A8E9E]/30">
-              <div className="space-y-4">
-                {/* Header */}
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-[#2A8E9E] rounded-full flex items-center justify-center text-white">
-                    <Plane className="w-5 h-5" />
-                  </div>
-                  <span className="text-sm font-semibold text-[#180D39] dark:text-white">Campaign Dashboard</span>
-                </div>
-
-                {/* Main Stats Card */}
-                <div className="bg-white dark:bg-[#1D1E20] rounded-lg p-4 space-y-3">
-                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Active Campaign</div>
-                  <div className="text-3xl font-bold text-[#180D39] dark:text-white">2.4M</div>
-                  <div className="text-sm text-gray-700 dark:text-gray-300">subscribers reached</div>
-
-                  {/* Stats Grid */}
-                  <div className="pt-2 border-t border-[#2A8E9E]/20 dark:border-[#2A8E9E]/20 space-y-2">
-                    <div className="flex justify-between text-xs items-center">
-                      <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <TrendingUp className="w-4 h-4 text-[#2A8E9E]" />
-                        Open Rate
-                      </span>
-                      <span className="font-semibold text-[#180D39] dark:text-white">38%</span>
-                    </div>
-                    <div className="flex justify-between text-xs items-center">
-                      <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <Mail className="w-4 h-4 text-[#2A8E9E]" />
-                        Sent
-                      </span>
-                      <span className="font-semibold text-[#180D39] dark:text-white">1.2M</span>
-                    </div>
-                    <div className="flex justify-between text-xs items-center">
-                      <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <Users className="w-4 h-4 text-[#2A8E9E]" />
-                        Subscribers
-                      </span>
-                      <span className="font-semibold text-[#180D39] dark:text-white">5.1K</span>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <button className="w-full bg-[#2A8E9E] hover:bg-[#1D7A89] text-white py-2 rounded-lg text-sm font-semibold mt-4 transition-colors">
-                    View Campaign
-                  </button>
-                </div>
-
-                {/* Footer */}
-                <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
-                  ⚡ Real-time analytics | 📊 Performance tracking
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <Button size="lg" className="group" asChild>
+              <Link href="/auth/register" className="inline-flex items-center">
+                Start Sending
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:border-white/30"
+              asChild
+            >
+              <Link href="#">View Docs</Link>
+            </Button>
           </div>
         </div>
       </div>

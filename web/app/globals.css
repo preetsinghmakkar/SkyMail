@@ -6,8 +6,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-heading: var(--font-geist-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -47,9 +48,24 @@
 }
 
 :root {
+  /* Section flow — each section blends into the next instead of a hard white cut */
+  --surface-hero: #0b1520;
+  --surface-features: #f7fbfc;
+  --surface-stats: #f3faf9;
+  --surface-pricing: #fbfcfd;
+  --surface-cta: #f8fafc;
+  --surface-footer: #07141d;
+
+  --text-heading: #0f172a;
+  --text-body: #475569;
+
+  --brand-primary: #0f766e;
+  --brand-secondary: #14b8a6;
+  --brand-accent: #38bdf8;
+
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: var(--surface-features);
+  --foreground: var(--text-heading);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -121,5 +137,55 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+
+  @keyframes blink-cursor {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .animate-blink-cursor {
+    animation: blink-cursor 1s step-start infinite;
+  }
+
+  @keyframes hero-drift {
+    0% {
+      transform: scale(1.03) translate3d(0, 0, 0);
+    }
+    50% {
+      transform: scale(1.08) translate3d(-1.2%, -1%, 0);
+    }
+    100% {
+      transform: scale(1.03) translate3d(0, 0, 0);
+    }
+  }
+
+  .animate-hero-drift {
+    animation: hero-drift 28s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-hero-drift {
+      animation: none;
+    }
+  }
+
+  .bg-grid-faint {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 }

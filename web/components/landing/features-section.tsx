@@ -25,58 +25,62 @@ const features = [
     icon: BarChart3,
     title: "Actionable Analytics",
     description:
-      "Know exactly what’s working — and what isn’t. Track opens, clicks, bounces, and conversions in real time. Segment performance by campaign, user, or timeframe to make smarter decisions faster.",
+      "Know exactly what's working — and what isn't. Track opens, clicks, bounces, and conversions in real time. Segment performance by campaign, user, or timeframe to make smarter decisions faster.",
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-[#1D1E20]">
+    <section
+      id="features"
+      className="py-24 px-4 sm:px-6 lg:px-8 bg-(--surface-features) dark:bg-[#0B1220]"
+    >
       <div className="max-w-5xl mx-auto">
-        <div className="text-center space-y-6 mb-20">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#180D39] dark:text-white">
+        <div className="max-w-2xl mb-20">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-(--text-heading) dark:text-white mb-5">
             Scale your communication without complexity.
           </h2>
-          <p className="text-gray-700 dark:text-gray-300 text-lg max-w-3xl mx-auto leading-relaxed">
-            Our enterprise-grade infrastructure ensures your newsletters land in
-            the inbox, not the spam folder.
+          <p className="text-(--text-body) dark:text-gray-400 text-lg leading-relaxed">
+            Enterprise-grade infrastructure that ensures your newsletters land
+            in the inbox, not the spam folder.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {features.map((feature) => {
+        <div className="grid md:grid-cols-3 gap-x-12 gap-y-14">
+          {features.map((feature, idx) => {
             const Icon = feature.icon;
             return (
               <div
                 key={feature.title}
-                className="p-8 rounded-xl bg-[#E9F3F4] dark:bg-[#2A8E9E]/10 border border-[#2A8E9E]/20 hover:border-[#2A8E9E]/50 hover:bg-[#E9F3F4]/80 dark:hover:bg-[#2A8E9E]/20 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                className={`${idx > 0 ? "md:pl-12 md:border-l md:border-black/10 dark:md:border-white/10" : ""}`}
               >
-                <div className="w-12 h-12 rounded-lg bg-[#2A8E9E]/20 flex items-center justify-center mb-4 group-hover:bg-[#2A8E9E]/30 transition-colors">
-                  <Icon className="w-6 h-6 text-[#2A8E9E]" />
-                </div>
-                <h3 className="text-lg font-semibold text-[#180D39] dark:text-white mb-3">
+                <Icon
+                  className="w-5 h-5 text-[#0F766E] dark:text-[#2dd4bf] mb-5"
+                  strokeWidth={1.75}
+                />
+                <h3 className="font-heading text-lg font-semibold text-(--text-heading) dark:text-white mb-3">
                   {feature.title}
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mb-4">
+                <p className="text-(--text-body) dark:text-gray-400 text-sm leading-relaxed">
                   {feature.description}
                 </p>
                 {feature.highlight && (
-                  <p className="text-sm text-[#2A8E9E] font-medium italic">
-                    Why this matters: {feature.highlight}
+                  <p className="mt-4 text-sm text-[#0F766E] dark:text-[#2dd4bf] font-medium">
+                    {feature.highlight}
                   </p>
                 )}
                 {feature.useCases && (
-                  <div className="mt-4 pt-4 border-t border-[#2A8E9E]/20">
-                    <p className="text-xs font-semibold text-[#180D39] dark:text-white mb-2">Use cases:</p>
-                    <ul className="space-y-1">
-                      {feature.useCases.map((useCase) => (
-                        <li key={useCase} className="text-xs text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                          <span className="w-1 h-1 bg-[#2A8E9E] rounded-full"></span>
-                          {useCase}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <ul className="mt-4 space-y-1.5">
+                    {feature.useCases.map((useCase) => (
+                      <li
+                        key={useCase}
+                        className="text-xs text-(--text-body) dark:text-gray-400 flex items-center gap-2"
+                      >
+                        <span className="w-1 h-1 bg-(--brand-accent) rounded-full" />
+                        {useCase}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             );
