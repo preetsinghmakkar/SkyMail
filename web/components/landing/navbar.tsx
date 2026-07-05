@@ -27,19 +27,26 @@ export function Navbar() {
   ];
 
   return (
-    // Positioning shell: full-bleed and centers its child with `flex
-    // justify-center`, which reliably centers a fit-content-width child —
-    // unlike `left-0 right-0` + `mx-auto` + an intrinsic width on the
-    // fixed element itself, which browsers don't resolve consistently.
+    // Positioning shell: full-bleed and aligns its child with flex. On
+    // mobile only the hamburger renders, which reads best pinned to the
+    // top-right corner (`justify-end`); at `md`+, the full nav pill is
+    // centered instead (`justify-center`). Using flex for alignment (not
+    // `left-0 right-0` + `mx-auto` on the pill itself) also sidesteps a
+    // browser inconsistency with centering a fit-content-width element.
     <div
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 flex justify-end md:justify-center transition-all duration-300",
         scrolled ? "p-3" : "p-4"
       )}
     >
       <nav
         className={cn(
-          "w-full md:w-fit px-4 sm:px-6 lg:px-8 transition-all duration-300",
+          // Collapsed (hamburger only), the pill hugs its content. Open on
+          // mobile, it needs to expand into a real menu panel instead of
+          // staying icon-sized — md+ always hugs content since the full
+          // inline nav there doesn't use this open/closed state at all.
+          isOpen ? "w-[calc(100vw-2rem)]" : "w-fit",
+          "md:w-fit px-3 sm:px-6 lg:px-8 transition-all duration-300",
           scrolled ? "py-2.5" : "py-4",
           scrolled
             ? "bg-white/90 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] dark:bg-[#0B1520]/85"

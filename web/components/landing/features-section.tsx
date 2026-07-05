@@ -36,7 +36,7 @@ export function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative py-24 px-4 sm:px-6 lg:px-8 bg-(--surface-features) dark:bg-[#0B1220]"
+      className="relative overflow-hidden py-24 px-4 sm:px-6 lg:px-8 bg-(--surface-features) dark:bg-[#0B1220]"
     >
       <div className="absolute inset-x-0 top-0 z-0 h-28 sm:h-36 pointer-events-none bg-[linear-gradient(to_bottom,var(--surface-how)_0%,transparent_100%)] dark:hidden" />
 
